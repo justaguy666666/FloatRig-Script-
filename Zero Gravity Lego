@@ -1,0 +1,55 @@
+-- credits to https://www.youtube.com/@x13-m5w
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
+local player = Players.LocalPlayer
+
+local function applyFloat(char)
+    local hum = char:WaitForChild("Humanoid")
+    local root = char:WaitForChild("HumanoidRootPart")
+
+    for _, part in ipairs(char:GetDescendants()) do
+        if part:IsA("BasePart") then
+            part.CustomPhysicalProperties = PhysicalProperties.new(0.01, 0, 0, 0, 0)
+            part.CanCollide = false
+        end
+    end
+
+    local vel = Instance.new("BodyVelocity")
+    vel.MaxForce = Vector3.new(1e9, 1e9, 1e9)
+    vel.Velocity = Vector3.new(0, 0, 0)
+    vel.Parent = root
+
+    local move = Vector3.new(0, 0, 0)
+
+    UIS.InputBegan:Connect(function(input)
+        if input.KeyCode == Enum.KeyCode.W then move = Vector3.new(0, 0, -1) end
+        if input.KeyCode == Enum.KeyCode.S then move = Vector3.new(0, 0, 1) end
+        if input.KeyCode == Enum.KeyCode.A then move = Vector3.new(-1, 0, 0) end
+        if input.KeyCode == Enum.KeyCode.D then move = Vector3.new(1, 0, 0) end
+        if input.KeyCode == Enum.KeyCode.Space then move = Vector3.new(0, 1, 0) end
+        if input.KeyCode == Enum.KeyCode.LeftShift then move = Vector3.new(0, -1, 0) end
+    end)
+
+    UIS.InputEnded:Connect(function(input)
+        move = Vector3.new(0, 0, 0)
+    end)
+
+    RunService.RenderStepped:Connect(function()
+        hum:ChangeState(Enum.HumanoidStateType.Physics)
+        hum.PlatformStand = true
+        hum.AutoRotate = false
+
+        local cam = workspace.CurrentCamera
+        local speed = 55
+        local desired = cam.CFrame:VectorToWorldSpace(move) * speed
+
+        vel.Velocity = vel.Velocity:Lerp(desired, 0.25)
+    end)
+end
+
+player.CharacterAdded:Connect(applyFloat)
+if player.Character then
+    applyFloat(player.Character)
+end
